@@ -36,18 +36,6 @@
     .topline { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
     .topline h2 { margin: 0; font-size: 1.15rem; }
     .language { display: flex; gap: 6px; }
-    #englishBtn { background: #c62828; color: #fff; border-color: #c62828; }
-    #englishBtn.active { background: #a91f1f; border-color: #a91f1f; color: #fff; }
-    .country-group { border: 3px solid; border-radius: 16px; padding: 14px; min-width: 0; }
-    .country-group.us-group { border-color: #d32f2f; }
-    .country-group.sv-group { border-color: #2463c7; }
-    .country-group-title { margin: 0 0 12px; font-size: 1rem; }
-    .country-results { display: grid; grid-template-columns: 1fr; gap: 10px; }
-    .country-group .result { border-color: #e2e6ed; }
-    #settings { background: #f0f1f3; color: #727782; border: 1px solid #d5d8de; border-radius: 12px; padding: 14px; }
-    #settings .hint, #settings .field small { color: #777e89; }
-    #settings input { background: #e5e7eb; color: #4b5563; border-color: #c8cbd1; }
-    #settings summary { color: #747985; }
     button, input, select { font: inherit; }
     button {
       cursor: pointer; border: 1px solid var(--border); border-radius: 10px; padding: 9px 13px;
@@ -111,10 +99,10 @@
 
     <section class="panel" aria-labelledby="calculator-heading">
       <div class="topline">
-        <h2 id="calculator-heading">Calculadora de precio en horas de trabajo</h2>
+        <h2 id="calculator-heading">Work-time price calculator</h2>
         <div class="language" aria-label="Language">
-          <button type="button" id="spanishBtn" class="active" aria-pressed="true">Español</button>
-          <button type="button" id="englishBtn" class="english-button" aria-pressed="false">English</button>
+          <button type="button" id="englishBtn" class="active" aria-pressed="true">English</button>
+          <button type="button" id="spanishBtn" aria-pressed="false">Español</button>
         </div>
       </div>
       <div class="price-row">
@@ -286,7 +274,7 @@
       }
     };
 
-    let language = "es";
+    let language = "en";
     const $ = (id) => document.getElementById(id);
     const fieldIds = ["price", "usMin", "usAvg", "svMin", "svAvg", "svHours", "usHours"];
 
@@ -338,14 +326,6 @@
         return;
       }
 
-      const usGroup = document.createElement("section");
-      usGroup.className = "country-group us-group";
-      usGroup.innerHTML = `<h3 class="country-group-title">${t.us}</h3><div class="country-results" id="usCountryResults"></div>`;
-      const svGroup = document.createElement("section");
-      svGroup.className = "country-group sv-group";
-      svGroup.innerHTML = `<h3 class="country-group-title">${t.sv}</h3><div class="country-results" id="svCountryResults"></div>`;
-      results.append(usGroup, svGroup);
-
       getRows().forEach(row => {
         const valid = Number.isFinite(row.rate) && row.rate > 0;
         const hours = valid ? row.price / row.rate : NaN;
@@ -353,17 +333,21 @@
           ? (Number.isFinite(row.week) && row.week > 0 ? row.week : 40)
           : (Number.isFinite(row.week) && row.week > 0 ? row.week : 190.67);
         const share = valid ? Math.max(0, Math.min(100, (hours / denominator) * 100)) : 0;
+        const countryName = t[row.country];
         const label = t[row.label];
+        const basisText = row.country === "us" ? t.perHour : t.perMonth;
         const card = document.createElement("article");
         card.className = "result";
         card.innerHTML = `
-          <div class="result-head"><div><h3>${label}</h3></div></div>
+          <div class="result-head">
+            <div><div class="country">${countryName}</div><h3>${label}</h3></div>
+          </div>
           <div class="hours">${valid ? formatDuration(hours) : t.invalid}</div>
           <div class="subresult">${valid ? `${money(row.rate)} / ${t.perHour}` : t.noWage}</div>
           <div class="bar" aria-hidden="true"><span style="width:${share}%"></span></div>
           <div class="result-footer">${valid ? `${share.toFixed(1)}% ${row.country === "us" ? t.workweek : t.workmonth}` : ""}</div>
         `;
-        $(row.country === "us" ? "usCountryResults" : "svCountryResults").appendChild(card);
+        results.appendChild(card);
       });
     }
 
@@ -419,7 +403,7 @@
       }
     });
 
-    setLanguage("es");
+    setLanguage("en");
   </script>
 </body>
 </html>
